@@ -3,8 +3,12 @@ name: CI
 on: push
 
 env:
-  BINARY_NAME: example
-  GO_VERSION: 1.21
+  BINARY_NAME: echo-server
+  GO_VERSION: 1.22
+  IMAGE_NAME: 'zerosuxx/echo-server'
+  PLATFORMS: 'linux/amd64,linux/arm64'
+  DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+  DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
 
 jobs:
   build:
@@ -13,7 +17,7 @@ jobs:
       CGO_ENABLED: 0
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
       - name: Setup Go
@@ -27,10 +31,47 @@ jobs:
       - name: Run build
         run: make build-all
       - name: Create artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ env.BINARY_NAME }}-binaries
           path: build/
+
+  build-docker:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Login to DockerHub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
+      - name: Build and deploy docker image
+        run: |
+          export VERSION=$(git describe --tags 2>/dev/null || echo '0.1.0')
+          echo $VERSION
+          docker buildx build \
+            . \
+            --build-arg BUILDKIT_INLINE_CACHE=1 \
+            --build-arg APP_VERSION=$VERSION \
+            --cache-from ${{ env.IMAGE_NAME }}:latest \
+            --platform ${{ env.PLATFORMS }} \
+            --target packed \
+            --push \
+            --tag ${{ env.IMAGE_NAME }}:$VERSION \
+            --tag ${{ env.IMAGE_NAME }}:latest
+      - name: Update Docker Hub description
+        uses: peter-evans/dockerhub-description@v3
+        with:
+          username: ${{ env.DOCKERHUB_USERNAME }}
+          password: ${{ env.DOCKERHUB_TOKEN }}
+          repository: ${{ env.IMAGE_NAME }}
+
 
   release:
     if: startsWith(github.ref, 'refs/tags')
@@ -38,13 +79,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Download binaries artifact
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ${{ env.BINARY_NAME }}-binaries
           path: build/
       - name: Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: "build/*"
