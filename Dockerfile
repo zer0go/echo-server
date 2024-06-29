@@ -5,8 +5,6 @@ ARG APP_VERSION="development"
 WORKDIR /build
 
 COPY *go* ./
-COPY internal ./internal
-COPY cmd ./cmd
 
 RUN go build -ldflags="-X 'main.Version=${APP_VERSION}'" -o app
 
