@@ -19,10 +19,11 @@ func main() {
 		resp["queryParams"] = request.URL.Query()
 		b, _ := json.Marshal(resp)
 
-		writer.Write(b)
+		writer.Header().Set("Content-Type", "application/json")
+		_, _ = writer.Write(b)
 	})
 	mux.HandleFunc("/health", func(writer http.ResponseWriter, request *http.Request) {
-		writer.Write([]byte("OK"))
+		_, _ = writer.Write([]byte("OK"))
 	})
 	mux.HandleFunc("/ping", func(writer http.ResponseWriter, request *http.Request) {
 		fmt.Println(request.RequestURI)
@@ -38,11 +39,13 @@ func main() {
 		timeout := time.Second
 		conn, err := net.DialTimeout("tcp", net.JoinHostPort(host, port), timeout)
 		if err != nil {
-			writer.Write([]byte(fmt.Sprintf("Connecting error: %s", err)))
+			_, _ = writer.Write([]byte(fmt.Sprintf("Connecting error: %s", err)))
 		}
 		if conn != nil {
-			defer conn.Close()
-			writer.Write([]byte(fmt.Sprintf("Opened: %s", net.JoinHostPort(host, port))))
+			defer func(conn net.Conn) {
+				_ = conn.Close()
+			}(conn)
+			_, _ = writer.Write([]byte(fmt.Sprintf("Opened: %s", net.JoinHostPort(host, port))))
 		}
 	})
 	mux.HandleFunc("/env", func(writer http.ResponseWriter, request *http.Request) {
