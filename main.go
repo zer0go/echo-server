@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/http"
@@ -12,6 +13,14 @@ var Version = "development"
 
 func main() {
 	mux := http.NewServeMux()
+	mux.HandleFunc("/", func(writer http.ResponseWriter, request *http.Request) {
+		resp := make(map[string]any)
+		resp["headers"] = request.Header
+		resp["queryParams"] = request.URL.Query()
+		b, _ := json.Marshal(resp)
+
+		writer.Write(b)
+	})
 	mux.HandleFunc("/health", func(writer http.ResponseWriter, request *http.Request) {
 		writer.Write([]byte("OK"))
 	})
