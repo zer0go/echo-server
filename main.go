@@ -62,7 +62,7 @@ func main() {
 		port = "8080"
 	}
 
-	fmt.Printf("Echo Server (%s) is running on port http://0.0.0.0:%s", Version, port)
+	fmt.Printf("Echo Server (%s) is running on port http://0.0.0.0:%s\n", Version, port)
 	err := http.ListenAndServe("0.0.0.0:"+port, mux)
 	if err != nil {
 		panic(err)
