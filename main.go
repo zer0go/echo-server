@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"net/http/httputil"
 	"os"
 	"time"
 )
@@ -18,6 +19,9 @@ func main() {
 		resp["headers"] = request.Header
 		resp["queryParams"] = request.URL.Query()
 		b, _ := json.Marshal(resp)
+
+		dump, _ := httputil.DumpRequest(request, true)
+		fmt.Printf("%q", dump)
 
 		writer.Header().Set("Content-Type", "application/json")
 		_, _ = writer.Write(b)
