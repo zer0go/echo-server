@@ -21,7 +21,7 @@ func main() {
 		b, _ := json.Marshal(resp)
 
 		dump, _ := httputil.DumpRequest(request, true)
-		fmt.Printf("%q", dump)
+		fmt.Printf("%q\n", dump)
 
 		writer.Header().Set("Content-Type", "application/json")
 		_, _ = writer.Write(b)
