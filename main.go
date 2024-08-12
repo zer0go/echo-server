@@ -58,7 +58,7 @@ func main() {
 		fmt.Println(envs)
 	})
 	mux.HandleFunc("/ip", func(writer http.ResponseWriter, request *http.Request) {
-		res, err := http.Get("https://ifconfig.me/ip")
+		res, err := http.Get("https://api.ipify.org")
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
 			fmt.Printf("error making http request: %s\n", err)
