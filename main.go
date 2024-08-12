@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/http/httputil"
@@ -55,6 +56,21 @@ func main() {
 	mux.HandleFunc("/env", func(writer http.ResponseWriter, request *http.Request) {
 		envs := os.Environ()
 		fmt.Println(envs)
+	})
+	mux.HandleFunc("/ip", func(writer http.ResponseWriter, request *http.Request) {
+		res, err := http.Get("https://ifconfig.me/ip")
+		if err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			fmt.Printf("error making http request: %s\n", err)
+			return
+		}
+
+		defer func(Body io.ReadCloser) {
+			_ = Body.Close()
+		}(res.Body)
+		ipAddress, _ := io.ReadAll(res.Body)
+
+		_, _ = writer.Write(ipAddress)
 	})
 
 	port := os.Getenv("PORT")
