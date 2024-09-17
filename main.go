@@ -70,7 +70,35 @@ func main() {
 		}(res.Body)
 		ipAddress, _ := io.ReadAll(res.Body)
 
+		fmt.Println(ipAddress)
+
 		_, _ = writer.Write(ipAddress)
+	})
+	mux.HandleFunc("/call", func(writer http.ResponseWriter, request *http.Request) {
+		fmt.Println(request.RequestURI)
+		host := request.URL.Query().Get("host")
+
+		if host == "" {
+			writer.WriteHeader(http.StatusBadRequest)
+			writer.Write([]byte("Host is required"))
+			return
+		}
+
+		res, err := http.Get(host)
+		if err != nil {
+			writer.WriteHeader(http.StatusInternalServerError)
+			fmt.Printf("error making http request: %s\n", err)
+			return
+		}
+
+		defer func(Body io.ReadCloser) {
+			_ = Body.Close()
+		}(res.Body)
+		output, _ := io.ReadAll(res.Body)
+
+		fmt.Println(output)
+
+		_, _ = writer.Write(output)
 	})
 
 	port := os.Getenv("PORT")
