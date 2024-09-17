@@ -76,15 +76,15 @@ func main() {
 	})
 	mux.HandleFunc("/call", func(writer http.ResponseWriter, request *http.Request) {
 		fmt.Println(request.RequestURI)
-		host := request.URL.Query().Get("host")
+		url := request.URL.Query().Get("url")
 
-		if host == "" {
+		if url == "" {
 			writer.WriteHeader(http.StatusBadRequest)
-			writer.Write([]byte("Host is required"))
+			writer.Write([]byte("URL is required"))
 			return
 		}
 
-		res, err := http.Get(host)
+		res, err := http.Get(url)
 		if err != nil {
 			writer.WriteHeader(http.StatusInternalServerError)
 			fmt.Printf("error making http request: %s\n", err)
