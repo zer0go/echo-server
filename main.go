@@ -30,7 +30,7 @@ func main() {
 	mux.HandleFunc("/health", func(writer http.ResponseWriter, request *http.Request) {
 		_, _ = writer.Write([]byte("OK"))
 	})
-	mux.HandleFunc("/ping", func(writer http.ResponseWriter, request *http.Request) {
+	mux.HandleFunc("/tcp", func(writer http.ResponseWriter, request *http.Request) {
 		fmt.Println(request.RequestURI)
 		host := request.URL.Query().Get("host")
 		port := request.URL.Query().Get("port")
